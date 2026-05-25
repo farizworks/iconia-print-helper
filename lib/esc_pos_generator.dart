@@ -85,23 +85,21 @@ class EscPosGenerator {
 
   // ── Arabic support ─────────────────────────────────────────────────────────
 
-  /// Encode an Arabic string as CP1256 (Windows-1256) bytes and append LF.
-  /// The text is reversed so it renders RTL on a LTR printer head.
+  /// Encode an Arabic string for the printer's Arabic code page and append LF.
+  /// PC1001 on the supported printer renders Arabic direction internally, so
+  /// send the logical character order rather than reversing it in software.
   ///
   /// Usage:
   ///   ...EscPosGenerator.codePage(kCodePageCp864),   // set Arabic code page
   ///   ...EscPosGenerator.arabicLine('اختبار العربية'),
   ///   ...EscPosGenerator.codePage(kCodePageDefault),  // restore Latin
   static List<int> arabicLine(String text) {
-    // Reverse the string so the printer (which prints LTR) produces RTL output.
-    final reversed = String.fromCharCodes(text.runes.toList().reversed);
-    return [..._encodeCp1256(reversed), 0x0a];
+    return [..._encodeCp1256(text), 0x0a];
   }
 
   /// Like [arabicLine] but without the trailing LF — for building mixed lines.
   static List<int> arabicText(String text) {
-    final reversed = String.fromCharCodes(text.runes.toList().reversed);
-    return _encodeCp1256(reversed);
+    return _encodeCp1256(text);
   }
 
   /// Build a standalone Arabic test receipt to check printer compatibility.

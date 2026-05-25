@@ -116,10 +116,15 @@ computer.
 2. Open the web app.
 3. Complete an order.
 4. Click `Print Bill` or `Print KOT` on the receipt screen.
-5. Watch the helper logs for job processing.
+5. Watch the helper logs for job processing and the `PRINT PREVIEW` block.
 6. Inspect `print_helper/prints/output.txt`.
 
 The fake backend appends a printable view and raw hex dump for each print job.
+For real network printers, the helper also logs a readable logical receipt
+before sending bytes. Arabic in that preview is the exact logical text sent
+through PC1001; if the preview reads correctly but the paper does not, the
+remaining issue is the printer code-page/firmware setting rather than invoice
+data.
 
 ## Network Printer
 
