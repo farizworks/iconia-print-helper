@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:iconia_print_helper/config.dart';
 import 'package:iconia_print_helper/esc_pos_generator.dart';
@@ -22,13 +23,18 @@ Future<void> main(List<String> args) async {
   final config = await HelperConfig.load(configPath);
   _validate(config);
 
+  final logoBytes = await _loadLogo(config, configPath);
+  if (logoBytes != null) {
+    stdout.writeln('[logo] Loaded ${logoBytes.length} bytes from ${config.logoPath}');
+  }
+
   final firestore = FirestoreClient(config);
   await firestore.initialize();
 
   final processor = JobProcessor(
     config: config,
     firestore: firestore,
-    renderer: TemplateRenderer(),
+    renderer: TemplateRenderer(logoBytes: logoBytes, logoWidthPercent: config.logoWidthPercent),
   );
 
   final signals = <StreamSubscription<ProcessSignal>>[
@@ -73,6 +79,19 @@ Future<void> _runArabicTest(String configPath) async {
   await Future<void>.delayed(const Duration(milliseconds: 500));
   await socket.close();
   stdout.writeln('[arabic-test] Done. Check your printer output.');
+}
+
+Future<Uint8List?> _loadLogo(HelperConfig config, String configPath) async {
+  final logoPath = config.logoPath;
+  if (logoPath == null || logoPath.isEmpty) return null;
+  // Resolve relative to config.json location
+  final configDir = File(configPath).absolute.parent.path;
+  final logoFile = File('$configDir/$logoPath');
+  if (!await logoFile.exists()) {
+    stdout.writeln('[logo] Warning: logo file not found at ${logoFile.path}');
+    return null;
+  }
+  return await logoFile.readAsBytes();
 }
 
 void _validate(HelperConfig config) {

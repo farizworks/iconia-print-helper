@@ -6,12 +6,16 @@ class HelperConfig {
   final String helperId;
   final String restaurantId;
   final List<PrinterConfig> printers;
+  final String? logoPath;
+  final int logoWidthPercent;
 
   const HelperConfig({
     required this.firebase,
     required this.helperId,
     required this.restaurantId,
     required this.printers,
+    this.logoPath,
+    this.logoWidthPercent = 50,
   });
 
   PrinterConfig? printerById(String id) {
@@ -40,6 +44,8 @@ class HelperConfig {
       ),
       helperId: rawHelperId.replaceAll('/', '-').trim(),
       restaurantId: data['restaurantId'] as String? ?? '',
+      logoPath: data['logoPath'] as String?,
+      logoWidthPercent: (data['logoWidthPercent'] as num?)?.toInt() ?? 50,
       printers:
           printers
               .map((p) => PrinterConfig.fromMap(p as Map<String, dynamic>))

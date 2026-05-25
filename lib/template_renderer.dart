@@ -3,6 +3,11 @@ import 'dart:typed_data';
 import 'esc_pos_generator.dart';
 
 class TemplateRenderer {
+  final Uint8List? logoBytes;
+  final int logoWidthPercent;
+
+  TemplateRenderer({this.logoBytes, this.logoWidthPercent = 50});
+
   Uint8List render(PrintJob job) {
     return switch (job.type) {
       'test' => _renderTest(job),
@@ -22,12 +27,18 @@ class TemplateRenderer {
   Uint8List _renderTest(PrintJob job) {
     final p = job.payload;
     final width = _width(job.paperWidth);
+    final paperWidthPx = job.paperWidth == 'mm58' ? 384 : 576;
     final parts = <List<int>>[
       EscPosGenerator.align(PosAlign.center),
+      if (logoBytes != null) ...[
+        EscPosGenerator.rasterImage(logoBytes!, paperWidthPx, logoWidthPercent: logoWidthPercent),
+        EscPosGenerator.feed(1),
+      ],
       EscPosGenerator.bold(true),
       EscPosGenerator.size(doubleSize: true),
       EscPosGenerator.line('TEST PRINT'),
       EscPosGenerator.size(),
+      ..._textLine('اختبار الطباعة', arabicAlign: PosAlign.center, restoreAlign: PosAlign.center),
       EscPosGenerator.bold(false),
       EscPosGenerator.separator(width, char: '='),
       EscPosGenerator.align(PosAlign.left),
@@ -35,8 +46,28 @@ class TemplateRenderer {
       EscPosGenerator.twoColumn('IP', p.string('ipAddress'), width),
       EscPosGenerator.twoColumn('Time', p.string('testedAt'), width),
       EscPosGenerator.separator(width, char: '='),
+      EscPosGenerator.tableRow(['Item', 'Qty', 'Total'], [width - 14, 4, 10]),
+      EscPosGenerator.separator(width),
+      EscPosGenerator.tableRow(['Karak Tea', '2', '6.00'], [width - 14, 4, 10]),
+      ..._textLine('شاي كرك', arabicAlign: PosAlign.left),
+      EscPosGenerator.tableRow(['Chicken Wrap', '1', '18.00'], [width - 14, 4, 10]),
+      ..._textLine('راب دجاج', arabicAlign: PosAlign.left),
+      EscPosGenerator.tableRow(['Water', '1', '2.00'], [width - 14, 4, 10]),
+      ..._textLine('ماء', arabicAlign: PosAlign.left),
+      EscPosGenerator.separator(width),
+      EscPosGenerator.twoColumn('Subtotal', 'AED 26.00', width),
+      EscPosGenerator.twoColumn('VAT 5%', 'AED 1.30', width),
+      EscPosGenerator.bold(true),
+      EscPosGenerator.twoColumn('TOTAL', 'AED 27.30', width),
+      ..._textLine('الإجمالي', arabicAlign: PosAlign.left),
+      EscPosGenerator.bold(false),
+      EscPosGenerator.separator(width),
+      EscPosGenerator.twoColumn('Payment', 'Cash', width),
+      ..._textLine('طريقة الدفع: نقداً', arabicAlign: PosAlign.left),
+      EscPosGenerator.separator(width),
       EscPosGenerator.align(PosAlign.center),
-      EscPosGenerator.line('Connection OK'),
+      EscPosGenerator.line('Thank you for your visit!'),
+      ..._textLine('شكرا لزيارتكم', arabicAlign: PosAlign.center, restoreAlign: PosAlign.center),
     ];
     return EscPosGenerator.build(parts);
   }
@@ -46,21 +77,45 @@ class TemplateRenderer {
     final width = _width(job.paperWidth);
     return [
       _center('TEST PRINT', width),
+      _center('اختبار الطباعة', width),
       '=' * width,
       _twoColumn('Printer', p.string('printerName'), width),
       _twoColumn('IP', p.string('ipAddress'), width),
       _twoColumn('Time', p.string('testedAt'), width),
       '=' * width,
-      _center('Connection OK', width),
+      _tableRow(['Item', 'Qty', 'Total'], [width - 14, 4, 10]),
+      '-' * width,
+      _tableRow(['Karak Tea', '2', '6.00'], [width - 14, 4, 10]),
+      'شاي كرك',
+      _tableRow(['Chicken Wrap', '1', '18.00'], [width - 14, 4, 10]),
+      'راب دجاج',
+      _tableRow(['Water', '1', '2.00'], [width - 14, 4, 10]),
+      'ماء',
+      '-' * width,
+      _twoColumn('Subtotal', 'AED 26.00', width),
+      _twoColumn('VAT 5%', 'AED 1.30', width),
+      _twoColumn('TOTAL', 'AED 27.30', width),
+      'الإجمالي',
+      '-' * width,
+      _twoColumn('Payment', 'Cash', width),
+      'طريقة الدفع: نقداً',
+      '-' * width,
+      _center('Thank you for your visit!', width),
+      _center('شكرا لزيارتكم', width),
     ].join('\n');
   }
 
   Uint8List _renderBill(PrintJob job) {
     final p = job.payload;
     final width = _width(job.paperWidth);
+    final paperWidthPx = job.paperWidth == 'mm58' ? 384 : 576;
     final sym = p.string('currencySymbol', fallback: 'AED');
     final parts = <List<int>>[
       EscPosGenerator.align(PosAlign.center),
+      if (logoBytes != null) ...[
+        EscPosGenerator.rasterImage(logoBytes!, paperWidthPx, logoWidthPercent: logoWidthPercent),
+        EscPosGenerator.feed(1),
+      ],
       EscPosGenerator.bold(true),
       EscPosGenerator.size(doubleSize: true),
       ..._textLine(
@@ -231,6 +286,7 @@ class TemplateRenderer {
       EscPosGenerator.separator(width),
       EscPosGenerator.align(PosAlign.center),
       EscPosGenerator.line('Thank you for your visit!'),
+      ..._textLine('شكرا لزيارتكم', arabicAlign: PosAlign.center, restoreAlign: PosAlign.center),
       EscPosGenerator.line('Powered by Invozora'),
     ]);
 

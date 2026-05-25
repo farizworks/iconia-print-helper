@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:image/image.dart' as img;
+
 enum PosAlign { left, center, right }
 
 class EscPosGenerator {
@@ -78,7 +80,7 @@ class EscPosGenerator {
     for (final part in parts) {
       out.addAll(part);
     }
-    out.addAll(feed(3));
+    out.addAll(feed(6));
     out.addAll(cut());
     return Uint8List.fromList(out);
   }
@@ -175,6 +177,71 @@ class EscPosGenerator {
     out.addAll(feed(4));
     out.addAll(cut());
     return Uint8List.fromList(out);
+  }
+
+  // ── Image ──────────────────────────────────────────────────────────────────
+
+  /// Converts a PNG/JPG image to ESC/POS GS v 0 raster bytes.
+  /// Prints a logo image centered on the receipt.
+  /// [paperWidthPx]: full paper width in dots (576 for 80mm, 384 for 58mm).
+  /// [logoWidthPercent]: logo width as % of paper width (10–100, default 50).
+  static List<int> rasterImage(
+    Uint8List imageBytes,
+    int paperWidthPx, {
+    int logoWidthPercent = 50,
+  }) {
+    final image = img.decodeImage(imageBytes);
+    if (image == null) return [];
+
+    final logoWidthPx = ((paperWidthPx * logoWidthPercent) / 100).round();
+
+    // Resize logo to desired width, keeping aspect ratio
+    final resized = img.copyResize(
+      image,
+      width: logoWidthPx,
+      interpolation: img.Interpolation.linear,
+    );
+
+    // Full-row byte width (logo is centered within paper width)
+    final paperWidthBytes = (paperWidthPx / 8).ceil();
+    final logoWidthBytes = (logoWidthPx / 8).ceil();
+    final paddingBytes = ((paperWidthBytes - logoWidthBytes) / 2).floor();
+    final height = resized.height;
+    final data = <int>[];
+
+    for (var y = 0; y < height; y++) {
+      // Left padding (white)
+      for (var i = 0; i < paddingBytes; i++) {
+        data.add(0x00);
+      }
+      // Logo pixels
+      for (var byteX = 0; byteX < logoWidthBytes; byteX++) {
+        var byte = 0;
+        for (var bit = 0; bit < 8; bit++) {
+          final x = byteX * 8 + bit;
+          if (x < resized.width) {
+            final pixel = resized.getPixel(x, y);
+            final alpha = pixel.a.toInt();
+            if (alpha < 128) continue;
+            final lum = (pixel.r * 0.299 + pixel.g * 0.587 + pixel.b * 0.114).toInt();
+            if (lum < 128) byte |= (0x80 >> bit);
+          }
+        }
+        data.add(byte);
+      }
+      // Right padding to fill full row
+      final filled = paddingBytes + logoWidthBytes;
+      for (var i = filled; i < paperWidthBytes; i++) {
+        data.add(0x00);
+      }
+    }
+
+    final xL = paperWidthBytes & 0xFF;
+    final xH = (paperWidthBytes >> 8) & 0xFF;
+    final yL = height & 0xFF;
+    final yH = (height >> 8) & 0xFF;
+
+    return [0x1D, 0x76, 0x30, 0x00, xL, xH, yL, yH, ...data];
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
