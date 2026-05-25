@@ -1,0 +1,10 @@
+# Dart
+.dart_tool/
+.packages
+build/
+
+# Credentials — never commit the real config
+config.json
+
+# macOS
+.DS_Store

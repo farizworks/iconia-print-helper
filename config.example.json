@@ -1,0 +1,18 @@
+{
+  "firebase": {
+    "projectId": "iconia-restaurant-web",
+    "apiKey": "YOUR_FIREBASE_WEB_API_KEY",
+    "email": "print-helper@example.com",
+    "password": "REPLACE_ME"
+  },
+  "helperId": "cashier-main",
+  "restaurantId": "your-restaurant-id-here",
+  "printers": [
+    {
+      "id": "fake-printer-1",
+      "name": "Fake Printer (testing)",
+      "backend": "fake",
+      "outputFile": "./prints/output.txt"
+    }
+  ]
+}

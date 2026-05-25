@@ -1,0 +1,14 @@
+name: iconia_print_helper
+description: Print helper sidecar for Iconia Restaurant Web POS
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  firedart: ^0.9.7
+  yaml: ^3.1.2
+
+dev_dependencies:
+  lints: ^4.0.0
