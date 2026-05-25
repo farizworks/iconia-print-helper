@@ -20,28 +20,38 @@ class TemplateRenderer {
   }
 
   Uint8List _renderTest(PrintJob job) {
-    final paperWidth = job.paperWidth == 'mm58' ? 58 : 80;
-    return EscPosGenerator.buildArabicTest(paperWidth);
+    final p = job.payload;
+    final width = _width(job.paperWidth);
+    final parts = <List<int>>[
+      EscPosGenerator.align(PosAlign.center),
+      EscPosGenerator.bold(true),
+      EscPosGenerator.size(doubleSize: true),
+      EscPosGenerator.line('TEST PRINT'),
+      EscPosGenerator.size(),
+      EscPosGenerator.bold(false),
+      EscPosGenerator.separator(width, char: '='),
+      EscPosGenerator.align(PosAlign.left),
+      EscPosGenerator.twoColumn('Printer', p.string('printerName'), width),
+      EscPosGenerator.twoColumn('IP', p.string('ipAddress'), width),
+      EscPosGenerator.twoColumn('Time', p.string('testedAt'), width),
+      EscPosGenerator.separator(width, char: '='),
+      EscPosGenerator.align(PosAlign.center),
+      EscPosGenerator.line('Connection OK'),
+    ];
+    return EscPosGenerator.build(parts);
   }
 
   String _debugTest(PrintJob job) {
+    final p = job.payload;
     final width = _width(job.paperWidth);
     return [
-      _center('ARABIC TEST PRINT', width),
-      _center('اختبار الطباعة العربية', width),
-      '-' * width,
-      _tableRow(['Item', 'Qty', 'Total'], [width - 14, 4, 10]),
-      _tableRow(['Karak Tea', '2', '6.00'], [width - 14, 4, 10]),
-      'شاي كرك',
-      _tableRow(['Chicken Wrap', '1', '18.00'], [width - 14, 4, 10]),
-      'راب دجاج',
-      _tableRow(['Water', '1', '2.00'], [width - 14, 4, 10]),
-      'ماء',
-      '-' * width,
-      _twoColumn('TOTAL', 'AED 27.30', width),
-      'الإجمالي',
-      '-' * width,
-      _center('شكرا لزيارتكم', width),
+      _center('TEST PRINT', width),
+      '=' * width,
+      _twoColumn('Printer', p.string('printerName'), width),
+      _twoColumn('IP', p.string('ipAddress'), width),
+      _twoColumn('Time', p.string('testedAt'), width),
+      '=' * width,
+      _center('Connection OK', width),
     ].join('\n');
   }
 
