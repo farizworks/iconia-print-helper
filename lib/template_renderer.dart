@@ -423,18 +423,20 @@ class TemplateRenderer {
   Uint8List _renderKot(PrintJob job) {
     final p = job.payload;
     final width = _width(job.paperWidth);
+    final invoiceSuffix = p.string('invoiceNumber').split('-').last;
+    final orderType = p.string('orderType').toUpperCase();
     final parts = <List<int>>[
       EscPosGenerator.align(PosAlign.center),
       EscPosGenerator.bold(true),
       EscPosGenerator.size(doubleSize: true),
-      EscPosGenerator.line('KOT'),
+      EscPosGenerator.line('KOT-$invoiceSuffix'),
       EscPosGenerator.size(),
+      EscPosGenerator.line(orderType),
       EscPosGenerator.bold(false),
       EscPosGenerator.align(PosAlign.left),
       EscPosGenerator.separator(width, char: '='),
       EscPosGenerator.twoColumn('Invoice', p.string('invoiceNumber'), width),
       EscPosGenerator.twoColumn('Time', p.string('createdAt'), width),
-      ..._labelValueLine('Order', p.string('orderType'), width),
       EscPosGenerator.separator(width),
     ];
 
