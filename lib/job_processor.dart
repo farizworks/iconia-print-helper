@@ -178,14 +178,7 @@ class JobProcessor {
         );
       }
       final bytes = renderer.render(job);
-      _log('Generated ${bytes.length} bytes for printer ${printer.name}');
-      _log('Logical print preview for job ${job.id}:');
-      stdout.writeln('----- PRINT PREVIEW START -----');
-      stdout.writeln(renderer.debugPreview(job));
-      stdout.writeln('----- PRINT PREVIEW END -------');
-      stdout.writeln(
-        '[Arabic mode] ESC t 21 / PC1001; logical RTL text sent without software reversal.',
-      );
+      _log('Sending ${bytes.length} bytes to ${printer.name}');
       await _backend(
         printer,
       ).printBytes(printer: printer, job: job, bytes: bytes);
