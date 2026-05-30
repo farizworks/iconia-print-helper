@@ -9,7 +9,7 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - uses: dart-lang/setup-dart@v1
         with:
@@ -24,7 +24,7 @@ jobs:
           dart compile exe bin/print_helper.dart -o build/print_helper.exe
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: print_helper_windows
           path: build/print_helper.exe
