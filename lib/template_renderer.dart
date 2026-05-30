@@ -425,11 +425,19 @@ class TemplateRenderer {
     final width = _width(job.paperWidth);
     final invoiceSuffix = p.string('invoiceNumber').split('-').last;
     final orderType = p.string('orderType').toUpperCase();
+    final isAmendment = p.boolValue('isAmendment');
+    final isReprint = p.boolValue('isReprint');
+
     final parts = <List<int>>[
       EscPosGenerator.align(PosAlign.center),
       EscPosGenerator.bold(true),
       EscPosGenerator.size(doubleSize: true),
-      EscPosGenerator.line('KOT-$invoiceSuffix'),
+      if (isAmendment)
+        EscPosGenerator.line('AMENDMENT')
+      else if (isReprint)
+        EscPosGenerator.line('REPRINT')
+      else
+        EscPosGenerator.line('KOT-$invoiceSuffix'),
       EscPosGenerator.size(),
       EscPosGenerator.line(orderType),
       EscPosGenerator.bold(false),
@@ -439,6 +447,15 @@ class TemplateRenderer {
       EscPosGenerator.twoColumn('Time', p.string('createdAt'), width),
       EscPosGenerator.separator(width),
     ];
+
+    if (isAmendment) {
+      parts.addAll([
+        EscPosGenerator.bold(true),
+        EscPosGenerator.line('ADD TO ORDER:'),
+        EscPosGenerator.bold(false),
+        EscPosGenerator.separator(width),
+      ]);
+    }
 
     for (final item in p.items) {
       final variant = item.string('variant');

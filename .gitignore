@@ -6,5 +6,10 @@ build/
 # Credentials — never commit the real config
 config.json
 
+# Logo is per-installation
+logo.png
+*.jpg
+*.jpeg
+
 # macOS
 .DS_Store
