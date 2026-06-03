@@ -173,14 +173,23 @@ class TemplateRenderer {
               ? item.string('nameArabic')
               : '${item.string('nameArabic')} (${item.string('variantArabic')})';
       if (_hasArabic(name)) {
-        parts.addAll(_textLine(name, arabicAlign: PosAlign.left));
-        parts.add(
-          EscPosGenerator.twoColumn(
-            '  Qty ${item.numValue('qty').toStringAsFixed(0)}',
-            _money(sym, item.numValue('lineTotal')),
-            width,
-          ),
-        );
+        final nameWidth = width - 14;
+        final truncated = name.length > nameWidth
+            ? '${name.substring(0, nameWidth - 3)}...'
+            : name;
+        final namePadded = truncated.padRight(nameWidth);
+        final qty = item.numValue('qty').toStringAsFixed(0).padRight(4);
+        final total = EscPosGenerator.truncate(
+          _money(sym, item.numValue('lineTotal')),
+          10,
+        ).padLeft(10);
+        parts.addAll([
+          EscPosGenerator.codePage(EscPosGenerator.kCodePagePc1001),
+          EscPosGenerator.align(PosAlign.left),
+          EscPosGenerator.arabicLine('$namePadded$qty$total'),
+          EscPosGenerator.codePage(EscPosGenerator.kCodePageDefault),
+          EscPosGenerator.align(PosAlign.left),
+        ]);
       } else {
         parts.add(
           EscPosGenerator.tableRow(
