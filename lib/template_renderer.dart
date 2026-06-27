@@ -469,6 +469,9 @@ class TemplateRenderer {
     for (final item in p.items) {
       final variant = item.string('variant');
       final quantity = item.numValue('qty').toStringAsFixed(0);
+      // Pad the "<qty>x" label to a fixed column so the item name always starts
+      // after a clear gap and names line up under each other on the ticket.
+      final qtyLabel = '${quantity}x'.padRight(4);
       parts.add(EscPosGenerator.bold(true));
       if (_hasArabic(item.string('name'))) {
         parts.add(EscPosGenerator.line('${quantity}x'));
@@ -476,7 +479,7 @@ class TemplateRenderer {
           _textLine(item.string('name'), arabicAlign: PosAlign.left),
         );
       } else {
-        parts.add(EscPosGenerator.line('${quantity}x ${item.string('name')}'));
+        parts.add(EscPosGenerator.line('$qtyLabel${item.string('name')}'));
       }
       parts.add(EscPosGenerator.bold(false));
       if (variant.isNotEmpty) {
@@ -514,9 +517,8 @@ class TemplateRenderer {
       final nameArabic = item.string('variantArabic').isEmpty
           ? item.string('nameArabic')
           : '${item.string('nameArabic')} (${item.string('variantArabic')})';
-      lines.add(
-        '${item.numValue('qty').toStringAsFixed(0)}x ${item.string('name')}',
-      );
+      final qtyLabel = '${item.numValue('qty').toStringAsFixed(0)}x'.padRight(4);
+      lines.add('$qtyLabel${item.string('name')}');
       if (variant.isNotEmpty) lines.add(variant);
       if (nameArabic.trim().isNotEmpty) lines.add(nameArabic);
       if (item.hasText('note')) lines.add('  Note: ${item.string('note')}');
