@@ -469,17 +469,19 @@ class TemplateRenderer {
     for (final item in p.items) {
       final variant = item.string('variant');
       final quantity = item.numValue('qty').toStringAsFixed(0);
-      // Pad the "<qty>x" label to a fixed column so the item name always starts
-      // after a clear gap and names line up under each other on the ticket.
-      final qtyLabel = '${quantity}x'.padRight(4);
+      // Quantity shown at the right end of the line (e.g. "Chicken Wrap    x2").
+      final qtyLabel = 'x$quantity';
       parts.add(EscPosGenerator.bold(true));
       if (_hasArabic(item.string('name'))) {
-        parts.add(EscPosGenerator.line('${quantity}x'));
+        // Arabic name prints on its own line; show the qty right-aligned above it.
+        parts.add(EscPosGenerator.twoColumn('', qtyLabel, width));
         parts.addAll(
           _textLine(item.string('name'), arabicAlign: PosAlign.left),
         );
       } else {
-        parts.add(EscPosGenerator.line('$qtyLabel${item.string('name')}'));
+        parts.add(
+          EscPosGenerator.twoColumn(item.string('name'), qtyLabel, width),
+        );
       }
       parts.add(EscPosGenerator.bold(false));
       if (variant.isNotEmpty) {
@@ -495,9 +497,10 @@ class TemplateRenderer {
       if (item.hasText('note')) {
         parts.addAll(_noteLine(item.string('note')));
       }
+      // Divider line under each item.
+      parts.add(EscPosGenerator.separator(width));
     }
 
-    parts.add(EscPosGenerator.separator(width));
     return EscPosGenerator.build(parts);
   }
 
@@ -517,13 +520,19 @@ class TemplateRenderer {
       final nameArabic = item.string('variantArabic').isEmpty
           ? item.string('nameArabic')
           : '${item.string('nameArabic')} (${item.string('variantArabic')})';
-      final qtyLabel = '${item.numValue('qty').toStringAsFixed(0)}x'.padRight(4);
-      lines.add('$qtyLabel${item.string('name')}');
+      final qtyLabel = 'x${item.numValue('qty').toStringAsFixed(0)}';
+      if (_hasArabic(item.string('name'))) {
+        lines.add(_twoColumn('', qtyLabel, width));
+        lines.add(item.string('name'));
+      } else {
+        lines.add(_twoColumn(item.string('name'), qtyLabel, width));
+      }
       if (variant.isNotEmpty) lines.add(variant);
       if (nameArabic.trim().isNotEmpty) lines.add(nameArabic);
       if (item.hasText('note')) lines.add('  Note: ${item.string('note')}');
+      // Divider line under each item.
+      lines.add('-' * width);
     }
-    lines.add('-' * width);
     return lines.join('\n');
   }
 
